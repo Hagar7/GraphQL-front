@@ -1,0 +1,18 @@
+@import '../../index.scss';
+
+
+
+.myNav{
+    background-color:$mainbg !important ;
+    box-shadow:  10px 10px 19px #1c1e22, -10px -10px 19px #e10098;
+    border-bottom: 1px solid #e10098;
+    .brand{
+        width: 10%;
+        .logo{
+            width: 100%;
+        }
+    }
+    .links{
+        color: $mainColor !important;
+    }
+}

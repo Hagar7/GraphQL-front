@@ -1,0 +1,24 @@
+@import '../../index.scss';
+
+
+.mainBody{
+    thead td{
+        background-color: $mainColor;
+        padding: 15px;
+        text-align: center;
+        color: $txtClr;
+        border-bottom:  1px solid transparent;
+    }
+    .tableBody{
+        tr td {
+            padding: 15px;
+            border: 1px solid $mainColor;
+            text-align: center;
+            color: $txtClr;
+        }
+        .btnOne{
+            background-color: $mainColor !important;
+            border: 1px solid $mainColor !important;
+        }
+    }
+}
