@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import style from "./PageContent.module.scss";
 import { gql, useMutation, useQuery } from "@apollo/client";
+import Joi from "joi";
 
 export default function PageContent() {
+  
   const getCategory = gql`
     query Categories {
       getAllCategory {
@@ -58,18 +60,29 @@ export default function PageContent() {
       }
     }
   `;
-
   let { data } = useQuery(getCategory);
   let [addproduct] = useMutation(productAction);
   let [remove] = useMutation(deleteActions);
 console.log(data);
   const [productData, setproductData] = useState({
     title: "",
-    quantity: 0,
-    price: 0,
+    quantity: "",
+    price: "",
     categoryId: "",
     description: "",
   });
+  const [errorList, setErrorList] = useState([]);
+     // joi validation
+     let validationForm = () => {
+      let schema = Joi.object({
+        title: Joi.string().required().min(3),
+        quantity:Joi.number().required(),
+        price:Joi.number().required(),
+        description: Joi.string().required().min(5).max(300),
+        categoryId:Joi.string().required().min(24).max(24)
+      });
+      return schema.validate(productData, { abortEarly: false });
+    };
   const changeHandler = (e) => {
     let myForm = { ...productData };
     e.target.type === "number"
@@ -78,12 +91,32 @@ console.log(data);
     setproductData(myForm);
   };
   function sendData() {
-    addproduct({
-      variables: { ...productData },
-      refetchQueries: [{ query: getCategory }],
-    })
-    setproductData()
+    let validateResponse = validationForm();
+    if (validateResponse.error) {
+      setErrorList(validateResponse.error.details);
+    } else {
+      addproduct({
+        variables: { ...productData },
+        refetchQueries: [{ query: getCategory }],
+      })
+      setproductData({
+        title: "",
+        quantity: "",
+        price: "",
+        categoryId: "",
+        description: "",
+      })
+    }
   }
+
+const showErrorMessage =(err)=>{
+let message = errorList.filter((error)=>error.message.includes(err))
+if (message[0] !== undefined) {
+  return <span className={`${style.msgAlert} alert alert-danger p-1`}>{message[0].message}</span>;
+} else {
+  return "";
+}
+}
 
   return (
     <div className={`${style.main}`}>
@@ -132,8 +165,10 @@ console.log(data);
                               className={`${style.inputForm} form-control`}
                               placeholder="Product Name"
                               onChange={changeHandler}
+                              value={productData.title}
                             />
                           </div>
+                          {showErrorMessage("title")}
                         </div>
 
                         <div className="col-md-6">
@@ -144,8 +179,10 @@ console.log(data);
                               className={`${style.inputForm} form-control`}
                               placeholder="Quantity"
                               onChange={changeHandler}
+                              value={productData.quantity}
                             />
                           </div>
+                          {showErrorMessage("quantity")}
                         </div>
                         <div className="col-md-12">
                           <div className={`${style.inputData}  `}>
@@ -155,14 +192,17 @@ console.log(data);
                               className={`${style.inputForm} form-control my-3`}
                               placeholder="Price"
                               onChange={changeHandler}
+                              value={productData.price}
                             />
                           </div>
+                          {showErrorMessage("price")}
 
                           <div className={`${style.inputData}  `}>
                             <select
                               className={`${style.inputForm} form-select`}
                               onChange={changeHandler}
                               name="categoryId"
+                              value={productData.categoryId}
                             >
                               <option defaultValue>Select Category</option>
                               {data?.getAllCategory?.map((item) => (
@@ -172,6 +212,7 @@ console.log(data);
                               ))}
                             </select>
                           </div>
+                          {showErrorMessage("categoryId")}
                           <div className={`${style.inputData}`}>
                             <textarea
                               name="description"
@@ -180,8 +221,10 @@ console.log(data);
                               className={`${style.inputForm} form-control my-3`}
                               placeholder="Description"
                               onChange={changeHandler}
+                              value={productData.description}
                             ></textarea>
                           </div>
+                          {showErrorMessage("description")}
                         </div>
                       </div>
                     </form>
@@ -191,7 +234,6 @@ console.log(data);
                       type="button"
                       className={`${style.btnTwo} btn btn-primary`}
                       onClick={sendData}
-                      data-bs-dismiss="modal"
                     >
                       Save changes
                     </button>
